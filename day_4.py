@@ -11,14 +11,14 @@ def has_double(sequence):
     return False
 
 def fits_adjacency_rules(sequence):
-    adjacent_splitted = [[sequence[0]]]
-    for i in range(1, len(sequence)):
-        if sequence[i] == adjacent_splitted[-1][-1]:
-            adjacent_splitted[-1].append(sequence[i])
+    start, end, fits = 0, 0, False
+    while end < len(sequence):
+        if sequence[start] == sequence[end]:
+            end += 1
         else:
-            adjacent_splitted.append([sequence[i]])
-    adjacent_lengths = [len(subsequence) for subsequence in adjacent_splitted]
-    return 2 in adjacent_lengths
+            fits = max(fits, end - start == 2)
+            start = end
+    return fits or (end - start == 2)
 
 def is_correct(password, use_adjacency_rules=False):
     digits = list(str(password))
