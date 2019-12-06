@@ -90,19 +90,19 @@ def execute_instruction(input: int, instruction_pointer: int, memory: List) -> i
     if len(parsed_instruction) == 3:
         step = get_step(opcode)
         instruction = memory[instruction_pointer: instruction_pointer+step]
-        if opcode == 5:
-            first_parameter = instruction[1] if parsed_instruction[1] else memory[instruction[1]]
-            second_parameter = instruction[2] if parsed_instruction[2] else memory[instruction[2]]
+        first_parameter, second_parameter = [
+            instruction[i] if parsed_instruction[i] else memory[instruction[i]]
+            for i in range(1, 3)
+        ]
+        if opcode == 5:  # jump if true
             return second_parameter if first_parameter else instruction_pointer + step
-        if opcode == 6:
-            first_parameter = instruction[1] if parsed_instruction[1] else memory[instruction[1]]
-            second_parameter = instruction[2] if parsed_instruction[2] else memory[instruction[2]]
+        if opcode == 6:  # jump if false
             return instruction_pointer + step if first_parameter else second_parameter
     if len(parsed_instruction) == 2:
         step = get_step(opcode)
         instruction = memory[instruction_pointer: instruction_pointer+step]
+        first_parameter = instruction[1] if parsed_instruction[1] else memory[instruction[1]]
         if opcode == 4:  # output
-            first_parameter = instruction[1] if parsed_instruction[1] else memory[instruction[1]]
             print(first_parameter)
         if opcode == 3:  # input
             memory[instruction[1]] = input
