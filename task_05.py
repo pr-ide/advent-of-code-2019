@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import operator
 
 
@@ -10,7 +10,7 @@ def get_opcode(instruction: int) -> int:
     return instruction % 100
 
 
-def parse_instruction(instruction: int) -> None:
+def parse_instruction(instruction: int) -> Tuple:
     opcode = get_opcode(instruction)
     if opcode in (1, 2, 7, 8):
         (
@@ -110,15 +110,11 @@ def execute_instruction(input: int, instruction_pointer: int, memory: List) -> i
 
 
 
-def parse_memory(memory: List) -> None:
+def parse_memory(input: int, memory: List) -> None:
     instruction_pointer = 0
     step = get_step(memory[instruction_pointer])
     while instruction_pointer != -1:
-        instruction_pointer = execute_instruction(5, instruction_pointer, memory)
-
-
-def process(input: int, memory: List) -> int:
-    parse_ints(memory)
+        instruction_pointer = execute_instruction(input, instruction_pointer, memory)
 
 
 def main():
@@ -181,7 +177,7 @@ def main():
         1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
         999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99
     ]
-    parse_memory(memory)
+    parse_memory(5, memory)
 
 
 if __name__ == '__main__':
