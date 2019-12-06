@@ -42,7 +42,7 @@ def parse_instruction(instruction: int) -> None:
             second_parameter_mode,
         )
     if opcode == 99:
-        return False
+        return (0,)
 
 
 def get_step(opcode: int) -> int:
@@ -63,7 +63,7 @@ def get_step(opcode: int) -> int:
 def execute_instruction(input: int, instruction_pointer: int, memory: List) -> int:
     parsed_instruction = parse_instruction(memory[instruction_pointer])
     opcode = parsed_instruction[0]
-    if not parsed_instruction:  # 99
+    if len(parsed_instruction) == 1:  # 99
         return -1
     if len(parsed_instruction) == 4:
         step = get_step(opcode)
