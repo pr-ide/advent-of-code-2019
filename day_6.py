@@ -15,28 +15,12 @@ def read_graph():
         graph[obj2].add(obj1)
     return graph
 
-def part1(graph):
+def bfs(graph, start_planet):
     visited = set()
     orbits = 0
-    current_distance = 1
-    queue = set(['COM'])
-    while queue:
-        next_queue = set()
-        for obj in queue:
-            visited.add(obj)
-            neighbours = graph.get(obj, set())
-            neighbours = set((n for n in neighbours if n not in visited))
-            orbits += len(neighbours) * current_distance
-            next_queue = next_queue | neighbours
-        current_distance += 1
-        queue = next_queue
-    print(f'orbits: {orbits}')
-
-def part2(graph):
-    visited = set()
     distances = {}
-    curr_distance = 0
-    queue = set(['YOU'])
+    curr_distance = 1
+    queue = set([start_planet])
     while queue:
         next_queue = set()
         for obj in queue:
@@ -45,15 +29,16 @@ def part2(graph):
             visited.add(obj)
             neighbours = graph.get(obj, set())
             neighbours = set((n for n in neighbours if n not in visited))
+            orbits += len(neighbours) * curr_distance
             next_queue = next_queue | neighbours
         queue = next_queue
         curr_distance += 1
-    print(f"distance: {distances['SAN'] - 2}")
+    return orbits, distances
 
 def solve():
     graph = read_graph()
-    part1(graph)
-    part2(graph)
+    print(f"orbits: {bfs(graph, 'COM')[0]}")
+    print(f"distance: {bfs(graph, 'YOU')[1]['SAN'] - 3}")
 
 
 if __name__ == '__main__':
