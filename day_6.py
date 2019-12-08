@@ -19,7 +19,7 @@ def bfs(graph, start_planet):
     visited = set()
     orbits = 0
     distances = {}
-    curr_distance = 1
+    curr_distance = 0
     queue = set([start_planet])
     while queue:
         next_queue = set()
@@ -29,7 +29,7 @@ def bfs(graph, start_planet):
             visited.add(obj)
             neighbours = graph.get(obj, set())
             neighbours = set((n for n in neighbours if n not in visited))
-            orbits += len(neighbours) * curr_distance
+            orbits += len(neighbours) * (curr_distance + 1)
             next_queue = next_queue | neighbours
         queue = next_queue
         curr_distance += 1
@@ -37,8 +37,13 @@ def bfs(graph, start_planet):
 
 def solve():
     graph = read_graph()
-    print(f"orbits: {bfs(graph, 'COM')[0]}")
-    print(f"distance: {bfs(graph, 'YOU')[1]['SAN'] - 3}")
+    # part 1
+    orbits, distances = bfs(graph, 'COM')
+    print(f"orbits: {orbits}")
+    # part 2
+    orbits, distances = bfs(graph, 'YOU')
+    # -2 because we should measure min distance from 'YOU' and 'SAN' neighbours
+    print(f"distance: {distances['SAN'] - 2}")
 
 
 if __name__ == '__main__':
