@@ -12,83 +12,126 @@ import java.util.stream.Collectors;
  */
 public class Day5Computer {
 
-	private List<Long> numberList;
+    enum Status {
+        WAIT_INPUT, IN_PROGRESS, END;
+    }
 
-	public Day5Computer(String s) {
-		numberList = Arrays.stream(
-				s.split(",")
-		).map(Long::parseLong).collect(Collectors.toList());
-	}
+    private List<Long> localMemory;
+    private List<Long> orginalMemory;
 
-	public String compile(Long input) {
 
-		List<Long> out = new ArrayList<>();
-		for (int i = 0; i < numberList.size(); i++) {
+    private List<Long> out = new ArrayList<>();
+    private List<Long> input = new ArrayList<>();
+    private int i = 0;
+    private Status status = null;
 
-			Long a = numberList.get(i);
-			long opt = a % 100;
-			List<Long> map = new ArrayList<>();
-			for (int m = 2; m < 5; m++) {
-				map.add((a / ((long) Math.pow(10, m)) % 10));
-			}
-			if (opt == 1) {
-				numberList.set(
-						Math.toIntExact(getaLong(numberList, 1L, i + 3)),
-						getaLong(numberList, map.get(0), i + 1) +
-								getaLong(numberList, map.get(1), i + 2));
-				i = i + map.size();
-			} else if (opt == 2) {
-				numberList.set(
-						Math.toIntExact(getaLong(numberList, 1L, i + 3)),
-						getaLong(numberList, map.get(0), i + 1)
-								*
-								getaLong(numberList, map.get(1), i + 2));
-				i = i + map.size();
-			} else if (opt == 3) {
-				numberList.set(Math.toIntExact(numberList.get(i + 1)), input);
-				i += 1;
-			} else if (opt == 4) {
-				out.add(getaLong(numberList, map.get(0), i + 1));
-				i += 1;
-			} else if (opt == 5) {
-				if (getaLong(numberList, map.get(0), i + 1) != 0) {
+    public Day5Computer(String s) {
+        orginalMemory = Arrays.stream(
+                s.split(",")
+        ).map(Long::parseLong).collect(Collectors.toList());
+        resetComp();
+    }
 
-					i = Math.toIntExact(getaLong(numberList, map.get(1), i + 2)) - 1;
-					continue;
-				}
-				i += 2;
-			} else if (opt == 6) {
-				if (getaLong(numberList, map.get(0), i + 1) == 0) {
-					i = Math.toIntExact(getaLong(numberList, map.get(1), i + 2)) - 1;
-					continue;
-				}
-				i += 2;
-			} else if (opt == 8) {
-				numberList.set(
-						Math.toIntExact(getaLong(numberList, 1L, i + 3)),
-						Objects.equals(getaLong(numberList, map.get(0), i + 1), getaLong(numberList, map.get(1), i + 2)) ?
-								1L :
-								0L);
-				i = i + 3;
-			} else if (opt == 7) {
-				numberList.set(
-						Math.toIntExact(getaLong(numberList, 1L, i + 3)),
-						getaLong(numberList, map.get(0), i + 1) < getaLong(numberList, map.get(1), i + 2) ? 1L : 0L);
-				i = i + 3;
-			} else if (opt == 99) {
-				break;
-			}
+    public void resetComp() {
+        i = 0;
+        localMemory = new ArrayList<>(orginalMemory);
+        out.clear();
+        input.clear();
+        status = Status.IN_PROGRESS;
+    }
 
-		}
-		return out.stream().map(Object::toString).collect(Collectors.joining(","));
-	}
+    public List<Long> getOut() {
+        return out;
+    }
 
-	private static Long getaLong(List<Long> longs, Long aLong, int i) {
-		if (aLong == null || aLong == 0) {
-			return longs.get(Math.toIntExact(longs.get(i)));
-		} else {
-			return longs.get(i);
-		}
-	}
+    public Status getStatus() {
+        return status;
+    }
+
+    public void compile(List<Long> input) {
+
+        this.input.addAll(input);
+
+        int inputI = 0;
+        List<Long> out = new ArrayList<>();
+        while (status.equals(Status.IN_PROGRESS)) {
+            status = makeStep();
+        }
+    }
+
+
+    private Status makeStep() {
+
+        Long a = localMemory.get(i);
+        long opt = a % 100;
+        List<Long> map = new ArrayList<>();
+        for (int m = 2; m < 5; m++) {
+            map.add((a / ((long) Math.pow(10, m)) % 10));
+        }
+        if (opt == 1) {
+            localMemory.set(
+                    Math.toIntExact(getaLong(localMemory, 1L, i + 3)),
+                    getaLong(localMemory, map.get(0), i + 1) +
+                            getaLong(localMemory, map.get(1), i + 2));
+            i = i + map.size();
+        } else if (opt == 2) {
+            localMemory.set(
+                    Math.toIntExact(getaLong(localMemory, 1L, i + 3)),
+                    getaLong(localMemory, map.get(0), i + 1)
+                            *
+                            getaLong(localMemory, map.get(1), i + 2));
+            i = i + map.size();
+        } else if (opt == 3) {
+
+            if (input.size() <= 0) {
+                return Status.WAIT_INPUT;
+            }
+
+            localMemory.set(Math.toIntExact(localMemory.get(i + 1)), input.get(0));
+            input = input.subList(1, input.size());
+            i += 1;
+        } else if (opt == 4) {
+            out.add(getaLong(localMemory, map.get(0), i + 1));
+            i += 1;
+        } else if (opt == 5) {
+            if (getaLong(localMemory, map.get(0), i + 1) != 0) {
+
+                i = Math.toIntExact(getaLong(localMemory, map.get(1), i + 2)) - 1;
+                return Status.IN_PROGRESS;
+            }
+            i += 2;
+        } else if (opt == 6) {
+            if (getaLong(localMemory, map.get(0), i + 1) == 0) {
+                i = Math.toIntExact(getaLong(localMemory, map.get(1), i + 2)) - 1;
+                return Status.IN_PROGRESS;
+            }
+            i += 2;
+        } else if (opt == 8) {
+            localMemory.set(
+                    Math.toIntExact(getaLong(localMemory, 1L, i + 3)),
+                    Objects.equals(getaLong(localMemory, map.get(0), i + 1), getaLong(localMemory, map.get(1), i + 2)) ?
+                            1L :
+                            0L);
+            i = i + 3;
+        } else if (opt == 7) {
+            localMemory.set(
+                    Math.toIntExact(getaLong(localMemory, 1L, i + 3)),
+                    getaLong(localMemory, map.get(0), i + 1) < getaLong(localMemory, map.get(1), i + 2) ? 1L : 0L);
+            i = i + 3;
+        } else if (opt == 99) {
+            return Status.END;
+        }
+
+        i++;
+        return Status.IN_PROGRESS;
+    }
+
+    private Long getaLong(List<Long> longs, Long aLong, int i) {
+        if (aLong == null || aLong == 0) {
+            return longs.get(Math.toIntExact(longs.get(i)));
+        } else {
+            return longs.get(i);
+        }
+    }
 
 }
