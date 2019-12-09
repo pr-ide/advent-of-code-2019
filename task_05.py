@@ -60,11 +60,11 @@ def get_step(opcode: int) -> int:
     return step_map[opcode%100]
 
 
-def execute_instruction(input: int, instruction_pointer: int, memory: List) -> int:
+def execute_instruction(inputs: List, instruction_pointer: int, memory: List) -> int:
     parsed_instruction = parse_instruction(memory[instruction_pointer])
     opcode = parsed_instruction[0]
     if len(parsed_instruction) == 1:  # 99
-        return -1
+        return -1, None
     if len(parsed_instruction) == 4:
         step = get_step(opcode)
         instruction = memory[instruction_pointer: instruction_pointer+step]
@@ -86,7 +86,7 @@ def execute_instruction(input: int, instruction_pointer: int, memory: List) -> i
                 memory[instruction[3]] = 1
             else:
                 memory[instruction[3]] = 0
-        return instruction_pointer + step
+        return instruction_pointer + step, None
     if len(parsed_instruction) == 3:
         step = get_step(opcode)
         instruction = memory[instruction_pointer: instruction_pointer+step]
@@ -95,26 +95,33 @@ def execute_instruction(input: int, instruction_pointer: int, memory: List) -> i
             for i in range(1, 3)
         ]
         if opcode == 5:  # jump if true
-            return second_parameter if first_parameter else instruction_pointer + step
+            return (second_parameter, None) if first_parameter else (instruction_pointer + step, None)
         if opcode == 6:  # jump if false
-            return instruction_pointer + step if first_parameter else second_parameter
+            return (instruction_pointer + step, None) if first_parameter else (second_parameter, None)
     if len(parsed_instruction) == 2:
         step = get_step(opcode)
         instruction = memory[instruction_pointer: instruction_pointer+step]
         first_parameter = instruction[1] if parsed_instruction[1] else memory[instruction[1]]
         if opcode == 4:  # output
-            print(first_parameter)
+            return instruction_pointer + step, first_parameter
         if opcode == 3:  # input
+            input = inputs.pop(0)
             memory[instruction[1]] = input
-        return instruction_pointer + step
+        return instruction_pointer + step, None
 
 
 
-def parse_memory(input: int, memory: List) -> None:
+def parse_memory(inputs: List, memory: List) -> None:
+    inputs = inputs.copy()
+    memory = memory.copy()
     instruction_pointer = 0
     step = get_step(memory[instruction_pointer])
+    result = 0
     while instruction_pointer != -1:
-        instruction_pointer = execute_instruction(input, instruction_pointer, memory)
+        instruction_pointer, output = execute_instruction(inputs, instruction_pointer, memory)
+        if output:
+            result = output
+    return result
 
 
 def main():
@@ -177,7 +184,7 @@ def main():
         1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
         999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99
     ]
-    parse_memory(5, memory)
+    print(parse_memory([5], memory))
 
 
 if __name__ == '__main__':
