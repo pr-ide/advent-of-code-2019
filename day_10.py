@@ -60,13 +60,12 @@ def solve():
     # part 2
     vectors_left = build_asteroid_death_queues(vectors, lazer)
     angle_generator = build_angle_generator(vectors_left)
-    curr_angle = next(angle_generator)
     asteroids_destroyed = 0
     while asteroids_destroyed < 200:
+        curr_angle = next(angle_generator)
         if vectors_left[curr_angle]:
             latest = vectors_left[curr_angle].pop()
             asteroids_destroyed += 1
-        curr_angle = next(angle_generator)
     part_2 = (lazer[1] + latest[0]) * 100 + (lazer[0] - latest[1])
     print(f'part 2: {part_2}')
 
