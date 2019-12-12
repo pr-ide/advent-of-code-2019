@@ -18,8 +18,9 @@ class Simulation:
 
     def apply_gravity(self):
         for i, j in combinations(range(4), 2):
-            self.velocities[i] += numpy.sign(self.points[j] - self.points[i])
-            self.velocities[j] += numpy.sign(self.points[i] - self.points[j])
+            delta = numpy.sign(self.points[j] - self.points[i])
+            self.velocities[i] += delta
+            self.velocities[j] -= delta
 
     def apply_velocity(self):
         self.points += self.velocities
