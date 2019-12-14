@@ -1,11 +1,14 @@
+import sys
+input = sys.stdin.readline
+read_tuple = lambda _type: map(_type, input().split(' '))
 import numpy
 from itertools import combinations
-from tqdm import tqdm
+from math import gcd
 
 
 class Simulation:
     
-    def __init__(self, points, velocities):
+    def __init__(self, points, velocities=numpy.zeros((4, 3), dtype=int)):
         self.points = points
         self.velocities = velocities
 
@@ -31,6 +34,12 @@ class Simulation:
     def kinetic_energy(self):
         return numpy.sum(numpy.abs(self.velocities), axis=1)
 
+
+def least_common_multiple(p_1, p_2, p_3):
+    lcm2 = p_2 * p_3 // gcd(p_2, p_3)
+    return p_1 * lcm2 // gcd(p_1, lcm2)
+
+
 def solve():
     initial_coords = numpy.array([
         [3, 15, 8],
@@ -39,9 +48,10 @@ def solve():
         [8, 4, -5],
     ])
     simulation = Simulation(initial_coords, numpy.zeros((4, 3), dtype=int))
-    for _ in tqdm(range(1000)):
+    for _ in range(1000):
         simulation.step()
     print('part 1: ', simulation.total_energy())
+    print('part 2: ', least_common_multiple(p_1=231614, p_2=144624, p_3=102356))
 
     
 if __name__ == '__main__':
