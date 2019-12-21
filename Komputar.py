@@ -3,8 +3,10 @@ from collections import deque
 
 class Komputar:
     def __init__(self, _input):
-        self.memory = _input
+        self.memory_size = 10 ** 5
+        self.memory = _input + [0 for _ in range(self.memory_size - len(_input))]
         self.ptr = 0
+        self.relative_base = 0
         self.opcodes = {
             1: self.add,
             2: self.multiply,
@@ -14,6 +16,7 @@ class Komputar:
             6: self.jump_if_false,
             7: self.less_than,
             8: self.equals,
+            9: self.relative_base_offset,
             99: self.halt_now,
         }
         self.stdin = deque()
@@ -41,28 +44,33 @@ class Komputar:
             return self.memory[self.memory[index]]
         elif mode == 1:
             return self.memory[index]
+        elif mode == 2:
+            return self.memory[self.relative_base + self.memory[index]]
 
-    def write_memory(self, index, val):
-        self.memory[self.memory[index]] = val
+    def write_memory(self, index, val, mode):
+        if mode == 0:
+            self.memory[self.memory[index]] = val
+        elif mode == 2:
+            self.memory[self.relative_base + self.memory[index]] = val
 
     def add(self, modes):
         a = self.read_memory(self.ptr + 1, modes[0])
         b = self.read_memory(self.ptr + 2, modes[1])
-        self.write_memory(self.ptr + 3, a + b)
+        self.write_memory(self.ptr + 3, a + b, modes[2])
         self.ptr += 4
         return 0
 
     def multiply(self, modes):
         a = self.read_memory(self.ptr + 1, modes[0])
         b = self.read_memory(self.ptr + 2, modes[1])
-        self.write_memory(self.ptr + 3, a * b)
+        self.write_memory(self.ptr + 3, a * b, modes[2])
         self.ptr += 4
         return 0
 
     def cin(self, modes):
         if self.stdin:
             value = self.stdin.popleft()
-            self.write_memory(self.ptr + 1, value)
+            self.write_memory(self.ptr + 1, value, modes[0])
             self.ptr += 2
             return 0
         else:
@@ -90,18 +98,23 @@ class Komputar:
 
     def less_than(self, modes):
         if self.read_memory(self.ptr + 1, modes[0]) < self.read_memory(self.ptr + 2, modes[1]):
-            self.write_memory(self.ptr + 3, 1)
+            self.write_memory(self.ptr + 3, 1, modes[2])
         else:
-            self.write_memory(self.ptr + 3, 0)
+            self.write_memory(self.ptr + 3, 0, modes[2])
         self.ptr += 4
         return 0
 
     def equals(self, modes):
         if self.read_memory(self.ptr + 1, modes[0]) == self.read_memory(self.ptr + 2, modes[1]):
-            self.write_memory(self.ptr + 3, 1)
+            self.write_memory(self.ptr + 3, 1, modes[2])
         else:
-            self.write_memory(self.ptr + 3, 0)
+            self.write_memory(self.ptr + 3, 0, modes[2])
         self.ptr += 4
+        return 0
+    
+    def relative_base_offset(self, modes):
+        self.relative_base += self.read_memory(self.ptr + 1, modes[0])
+        self.ptr += 2
         return 0
     
     def halt_now(self, modes):
