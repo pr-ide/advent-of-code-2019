@@ -75,27 +75,26 @@ def bfs(graph, start):
 
 
 def recursive_maze_bfs(graph, start, end, inner, outer):
-    level = 0
-    queue = {(start, level)}
+
+    def n_lvl_calc(elem, n, e_lvl):
+        if elem in outer and n in inner:
+            return e_lvl - 1
+        if elem in inner and n in outer:
+            return e_lvl + 1
+        return e_lvl
+
+    queue = {(start, 0)}
     visited = set()
     distance = 0
     while queue:
         next_queue = set()
-        for elem, level in queue:
-            visited.add((elem, level))
-            neighbors = [(n, level) for n in graph[elem] if n not in visited]
+        for elem, e_lvl in queue:
+            visited.add((elem, e_lvl))
+            neighbors = ((n, n_lvl_calc(elem, n, e_lvl)) for n in graph[elem] if n not in visited)
+            neighbors = filter(lambda x: not (x[0] == end and x[1] > 0) and not x[1] < 0, neighbors)
             for n, n_lvl in neighbors:
                 if n == end:
-                    if n_lvl == 0:
-                        return distance + 1
-                    else:
-                        continue
-                if elem in outer and n in inner:
-                    n_lvl -= 1
-                if elem in inner and n in outer:
-                    n_lvl += 1
-                if n_lvl < 0:
-                    continue
+                    return distance + 1
                 if (n, n_lvl) not in visited:
                     next_queue.add((n, n_lvl))
         queue = next_queue
