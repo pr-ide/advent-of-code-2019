@@ -6,6 +6,7 @@ from collections import defaultdict
 def parse_map():
     graph = defaultdict(set)
     portals = defaultdict(set)
+    inner, outer = set(), set()
     _input = [list(' ' + row + ' ') for row in sys.stdin.read().split('\n')]
     h, w = len(_input) + 2, len(_input[0])
     _input.append([' ' for _ in range(w)])
@@ -23,14 +24,30 @@ def parse_map():
                 portal = ''.join(sorted(_input[i][j] + _input[i + 1][j]))
                 if _input[i + 2][j] == '.':
                     portals[portal].add((i + 2, j))
+                    if i - 1 == 0:
+                        outer.add((i + 2, j))
+                    else:
+                        inner.add((i + 2, j))
                 elif _input[i - 1][j] == '.':
                     portals[portal].add((i - 1, j))
+                    if i + 2 == h - 1:
+                        outer.add((i - 1, j))
+                    else:
+                        inner.add((i - 1, j))
             if _input[i][j] in chars and _input[i][j + 1] in chars:
                 portal = ''.join(sorted(_input[i][j] + _input[i][j + 1]))
                 if _input[i][j + 2] == '.':
                     portals[portal].add((i, j + 2))
+                    if j - 1 == 0:
+                        outer.add((i, j + 2))
+                    else:
+                        inner.add((i, j + 2))
                 elif _input[i][j - 1] == '.':
                     portals[portal].add((i, j - 1))
+                    if j + 2 == w - 1:
+                        outer.add((i, j - 1))
+                    else:
+                        inner.add((i, j - 1))
     for portal, points in portals.items():
         if len(points) == 2:
             _in, _out = points.pop(), points.pop()
@@ -38,7 +55,9 @@ def parse_map():
             graph[_out].add(_in)
     start = portals['AA'].pop()
     end = portals['ZZ'].pop()
-    return graph, start, end
+    outer -= set((start, end))
+    return graph, start, end, inner, outer
+
 
 def bfs(graph, start):
     queue = set([start])
@@ -54,9 +73,39 @@ def bfs(graph, start):
         queue = next_queue
     return distances
 
+
+def recursive_maze_bfs(graph, start, end, inner, outer):
+    level = 0
+    queue = {(start, level)}
+    visited = set()
+    distance = 0
+    while queue:
+        next_queue = set()
+        for elem, level in queue:
+            visited.add((elem, level))
+            neighbors = [(n, level) for n in graph[elem] if n not in visited]
+            for n, n_lvl in neighbors:
+                if n == end:
+                    if n_lvl == 0:
+                        return distance + 1
+                    else:
+                        continue
+                if elem in outer and n in inner:
+                    n_lvl -= 1
+                if elem in inner and n in outer:
+                    n_lvl += 1
+                if n_lvl < 0:
+                    continue
+                if (n, n_lvl) not in visited:
+                    next_queue.add((n, n_lvl))
+        queue = next_queue
+        distance += 1
+
+
 def solve():
-    graph, start, end = parse_map()
+    graph, start, end, inner, outer = parse_map()
     print('part 1:', bfs(graph, start)[end])
+    print('part 2:', recursive_maze_bfs(graph, start, end, inner, outer))
 
 
 if __name__ == '__main__':
